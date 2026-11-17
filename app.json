@@ -2,12 +2,13 @@
   "expo": {
     "name": "AgriTech",
     "slug": "agritech",
+    "scheme": "agritech",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#166534"
     },
@@ -16,12 +17,11 @@
       "bundleIdentifier": "com.agritech.app"
     },
     "android": {
-      "package": "com.yourname.agritech",
+      "package": "com.agritech.app",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#166534"
-      },
-      "usesCleartextTraffic": true
+      }
     },
     "web": {
       "bundler": "metro"

@@ -1,15 +1,36 @@
+import { router } from "expo-router";
 import {
-    ChevronRight,
-    Database,
-    LogOut,
-    MapPin,
-    User,
+  ChevronRight,
+  Database,
+  LogOut,
+  MapPin,
+  User,
 } from "lucide-react-native";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Alert, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAuth } from "../../../context/AuthContext";
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
+  const { logout, farmer } = useAuth();
+
+  const handleLogout = async () => {
+    Alert.alert(
+      "Sign Out",
+      "Are you sure you want to sign out of your farm profile?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Sign Out",
+          style: "destructive",
+          onPress: async () => {
+            await logout();
+            router.replace("/login" as any);
+          },
+        },
+      ],
+    );
+  };
 
   return (
     <View style={{ paddingTop: insets.top }} className="flex-1 bg-slate-50">
@@ -48,7 +69,11 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity className="bg-red-50 p-4 rounded-2xl border border-red-200 flex-row items-center justify-center gap-2">
+        <TouchableOpacity
+          onPress={handleLogout}
+          className="bg-red-50 p-4 rounded-2xl border border-red-200 flex-row items-center justify-center gap-2"
+          activeOpacity={0.8}
+        >
           <LogOut size={18} color="#dc2626" />
           <Text className="text-red-700 font-bold text-sm">Sign Out</Text>
         </TouchableOpacity>
