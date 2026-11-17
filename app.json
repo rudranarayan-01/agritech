@@ -34,7 +34,8 @@
         {
           "locationAlwaysAndWhenInUsePermission": "Allow AgriTech to access your location for precise weather advisories."
         }
-      ]
+      ],
+      "expo-web-browser"
     ]
   }
 }
