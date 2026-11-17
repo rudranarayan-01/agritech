@@ -12,16 +12,20 @@
       "backgroundColor": "#166534"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.agritech.app"
     },
     "android": {
+      "package": "com.yourname.agritech",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#166534"
-      }
+      },
+      "usesCleartextTraffic": true
     },
     "web": {
       "bundler": "metro"
-    }
+    },
+    "plugins": ["expo-secure-store"]
   }
 }
