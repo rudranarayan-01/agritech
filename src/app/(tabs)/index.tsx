@@ -1,19 +1,5 @@
 import { router } from "expo-router";
-import {
-  AlertTriangle,
-  Bell,
-  BookOpen,
-  Camera,
-  ChevronRight,
-  CloudSun,
-  Droplets,
-  Leaf,
-  MapPin,
-  Microscope,
-  ShieldCheck,
-  Sprout,
-  Wind,
-} from "lucide-react-native";
+import { Bell, Camera, ShieldCheck, Sprout } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
   RefreshControl,
@@ -24,16 +10,27 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import AdvisoryGrid from "../../../components/home/AdvisoryGrid";
+import CropCarousel from "../../../components/home/CropCarousel";
+import RecentScansList from "../../../components/home/RecentScansList";
+import WeatherStrip from "../../../components/home/WeatherStrip";
 import { fetchLocalWeatherAndLocation } from "../../../services/weatherService";
 
-const MY_CROPS = [
+const MOCK_CROPS = [
   { id: "1", name: "Tomato", stage: "Flowering", health: "Healthy" },
   { id: "2", name: "Wheat", stage: "Tillering", health: "Alert" },
   { id: "3", name: "Potato", stage: "Vegetative", health: "Healthy" },
   { id: "4", name: "Rice", stage: "Seedling", health: "Healthy" },
 ];
 
-const RECENT_SCANS = [
+const MOCK_SCANS: Array<{
+  id: string;
+  crop: string;
+  diagnosis: string;
+  confidence: string;
+  date: string;
+  severity: "high" | "healthy";
+}> = [
   {
     id: "101",
     crop: "Tomato Leaf",
@@ -144,7 +141,7 @@ export default function HomeScreen() {
 
           <TouchableOpacity
             activeOpacity={0.85}
-            onPress={() => router.push("/explore" as any)} // Or route to your camera/inspection screen
+            onPress={() => router.push("/explore" as any)}
             className="mt-5 bg-white py-3.5 px-5 rounded-2xl flex-row items-center justify-center gap-2.5 shadow-sm"
           >
             <Camera size={20} color="#047857" />
@@ -154,206 +151,27 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* 2. Live Field Telemetry & Weather Strip */}
-        <View className="bg-white rounded-2xl p-4 border border-emerald-100 shadow-sm">
-          <View className="flex-row items-center justify-between mb-3 pb-2 border-b border-slate-100">
-            <View className="flex-row items-center gap-1.5">
-              <MapPin size={14} color="#059669" />
-              <Text className="text-xs font-bold text-emerald-800 uppercase tracking-wide">
-                {weatherData.locationName}
-              </Text>
-            </View>
-            <Text className="text-[10px] text-slate-400">
-              Pull down to refresh
-            </Text>
-          </View>
+        {/* 2. Live Field Telemetry & Weather Strip Component */}
+        <WeatherStrip
+          locationName={weatherData.locationName}
+          temperature={weatherData.temperature}
+          humidity={weatherData.humidity}
+          windSpeed={weatherData.windSpeed}
+          condition={weatherData.condition}
+        />
 
-          <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center gap-3">
-              <View className="w-12 h-12 bg-emerald-50 rounded-xl items-center justify-center border border-emerald-100">
-                <CloudSun size={26} color="#059669" />
-              </View>
-              <View>
-                <Text className="text-slate-900 font-extrabold text-lg">
-                  {weatherData.temperature}°C · {weatherData.condition}
-                </Text>
-                <Text className="text-slate-500 text-xs">
-                  Live local weather metrics
-                </Text>
-              </View>
-            </View>
+        {/* 3. Active Crops Carousel Component */}
+        <CropCarousel
+          crops={MOCK_CROPS}
+          selectedCropId={selectedCrop}
+          onSelectCrop={(id: string) => setSelectedCrop(id)}
+        />
 
-            <View className="flex-row items-center gap-4">
-              <View className="items-center">
-                <View className="flex-row items-center gap-1">
-                  <Droplets size={13} color="#059669" />
-                  <Text className="text-slate-800 font-bold text-xs">
-                    {weatherData.humidity}%
-                  </Text>
-                </View>
-                <Text className="text-slate-400 text-[10px]">Humidity</Text>
-              </View>
-              <View className="items-center">
-                <View className="flex-row items-center gap-1">
-                  <Wind size={13} color="#059669" />
-                  <Text className="text-slate-800 font-bold text-xs">
-                    {weatherData.windSpeed} km/h
-                  </Text>
-                </View>
-                <Text className="text-slate-400 text-[10px]">Wind</Text>
-              </View>
-            </View>
-          </View>
-        </View>
+        {/* 4. Quick Advisory Tools Grid Component */}
+        <AdvisoryGrid />
 
-        {/* 3. Active Crops Selector */}
-        <View className="gap-3">
-          <View className="flex-row items-center justify-between">
-            <Text className="text-base font-extrabold text-slate-900">
-              Your Monitored Crops
-            </Text>
-            <TouchableOpacity>
-              <Text className="text-xs font-bold text-emerald-700">
-                + Add Crop
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View className="flex-row gap-3">
-              {MY_CROPS.map((crop) => {
-                const isSelected = selectedCrop === crop.id;
-                return (
-                  <TouchableOpacity
-                    key={crop.id}
-                    onPress={() => setSelectedCrop(crop.id)}
-                    activeOpacity={0.8}
-                    className={`w-32 p-3.5 rounded-2xl border ${
-                      isSelected
-                        ? "bg-emerald-600 border-emerald-600"
-                        : "bg-white border-emerald-100"
-                    }`}
-                  >
-                    <View className="flex-row items-center justify-between mb-2">
-                      <View
-                        className={`w-8 h-8 rounded-lg items-center justify-center ${isSelected ? "bg-emerald-500" : "bg-emerald-50"}`}
-                      >
-                        <Leaf
-                          size={16}
-                          color={isSelected ? "#ffffff" : "#059669"}
-                        />
-                      </View>
-                      {crop.health === "Alert" && (
-                        <View className="w-2.5 h-2.5 rounded-full bg-amber-400" />
-                      )}
-                    </View>
-                    <Text
-                      className={`font-bold text-sm ${isSelected ? "text-white" : "text-slate-900"}`}
-                    >
-                      {crop.name}
-                    </Text>
-                    <Text
-                      className={`text-[11px] mt-0.5 ${isSelected ? "text-emerald-100" : "text-slate-500"}`}
-                    >
-                      {crop.stage}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </ScrollView>
-        </View>
-
-        {/* 4. Quick Advisory Tools Grid */}
-        <View className="gap-3">
-          <Text className="text-base font-extrabold text-slate-900">
-            Advisory & Tools
-          </Text>
-          <View className="flex-row gap-3">
-            <TouchableOpacity
-              activeOpacity={0.8}
-              className="flex-1 bg-white p-4 rounded-2xl border border-emerald-100 gap-2 shadow-sm"
-            >
-              <View className="w-10 h-10 bg-emerald-50 rounded-xl items-center justify-center">
-                <Microscope size={20} color="#059669" />
-              </View>
-              <Text className="text-slate-900 font-bold text-sm">
-                Fertilizer Calc
-              </Text>
-              <Text className="text-slate-500 text-xs leading-snug">
-                NPK dosage tailored to plot acreage
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              activeOpacity={0.8}
-              className="flex-1 bg-white p-4 rounded-2xl border border-emerald-100 gap-2 shadow-sm"
-            >
-              <View className="w-10 h-10 bg-emerald-50 rounded-xl items-center justify-center">
-                <BookOpen size={20} color="#059669" />
-              </View>
-              <Text className="text-slate-900 font-bold text-sm">
-                Pest Library
-              </Text>
-              <Text className="text-slate-500 text-xs leading-snug">
-                Browse organic & chemical treatments
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* 5. Recent Diagnostic History */}
-        <View className="gap-3">
-          <View className="flex-row items-center justify-between">
-            <Text className="text-base font-extrabold text-slate-900">
-              Recent Diagnostics
-            </Text>
-            <TouchableOpacity>
-              <Text className="text-xs font-bold text-emerald-700">
-                View All
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <View className="gap-2.5">
-            {RECENT_SCANS.map((scan) => (
-              <TouchableOpacity
-                key={scan.id}
-                activeOpacity={0.8}
-                className="bg-white p-4 rounded-2xl border border-emerald-100 flex-row items-center justify-between shadow-sm"
-              >
-                <View className="flex-row items-center gap-3.5">
-                  <View
-                    className={`w-11 h-11 rounded-xl items-center justify-center ${scan.severity === "high" ? "bg-amber-50" : "bg-emerald-50"}`}
-                  >
-                    {scan.severity === "high" ? (
-                      <AlertTriangle size={20} color="#d97706" />
-                    ) : (
-                      <ShieldCheck size={20} color="#059669" />
-                    )}
-                  </View>
-                  <View>
-                    <Text className="text-slate-900 font-bold text-sm">
-                      {scan.diagnosis}
-                    </Text>
-                    <Text className="text-slate-500 text-xs mt-0.5">
-                      {scan.crop} · {scan.date}
-                    </Text>
-                  </View>
-                </View>
-
-                <View className="flex-row items-center gap-1.5">
-                  <View className="bg-emerald-50 px-2 py-1 rounded-md border border-emerald-200">
-                    <Text className="text-emerald-700 text-[11px] font-bold">
-                      {scan.confidence}
-                    </Text>
-                  </View>
-                  <ChevronRight size={16} color="#94a3b8" />
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+        {/* 5. Recent Diagnostic History Component */}
+        <RecentScansList scans={MOCK_SCANS} />
       </ScrollView>
     </View>
   );
