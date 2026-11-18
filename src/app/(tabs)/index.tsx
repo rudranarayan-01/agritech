@@ -14,43 +14,15 @@ import AdvisoryGrid from "../../../components/home/AdvisoryGrid";
 import CropCarousel from "../../../components/home/CropCarousel";
 import RecentScansList from "../../../components/home/RecentScansList";
 import WeatherStrip from "../../../components/home/WeatherStrip";
+import { apiClient } from "../../../services/api";
 import { fetchLocalWeatherAndLocation } from "../../../services/weatherService";
 
-const MOCK_CROPS = [
-  { id: "1", name: "Tomato", stage: "Flowering", health: "Healthy" },
-  { id: "2", name: "Wheat", stage: "Tillering", health: "Alert" },
-  { id: "3", name: "Potato", stage: "Vegetative", health: "Healthy" },
-  { id: "4", name: "Rice", stage: "Seedling", health: "Healthy" },
-];
-
-const MOCK_SCANS: Array<{
-  id: string;
-  crop: string;
-  diagnosis: string;
-  confidence: string;
-  date: string;
-  severity: "high" | "healthy";
-}> = [
-  {
-    id: "101",
-    crop: "Tomato Leaf",
-    diagnosis: "Early Blight Detected",
-    confidence: "96%",
-    date: "Today, 10:24 AM",
-    severity: "high",
-  },
-  {
-    id: "102",
-    crop: "Potato Foliage",
-    diagnosis: "Healthy Specimen",
-    confidence: "99%",
-    date: "Yesterday",
-    severity: "healthy",
-  },
-];
-
 export default function HomeScreen() {
-  const [selectedCrop, setSelectedCrop] = useState("1");
+  const [selectedCrop, setSelectedCrop] = useState<string>("");
+  const [farmerData, setFarmerData] = useState<any>(null);
+  const [recentScans, setRecentScans] = useState<any[]>([]);
+  const [loadingDashboard, setLoadingDashboard] = useState(true);
+
   const [weatherData, setWeatherData] = useState<{
     locationName: string;
     temperature: number | string;
@@ -66,26 +38,91 @@ export default function HomeScreen() {
     windSpeed: "--",
     condition: "Fetching weather...",
   });
+
   const [refreshing, setRefreshing] = useState(false);
   const insets = useSafeAreaInsets();
 
+  const loadDashboardData = async () => {
+    try {
+      const response = await apiClient.get("/farmers/dashboard");
+      if (response.data?.success) {
+        const { farmer, recentInspections } = response.data.data;
+        setFarmerData(farmer);
+
+        // Map backend currentCrops parcels to format expected by CropCarousel
+        if (farmer.currentCrops && farmer.currentCrops.length > 0) {
+          const formattedCrops = farmer.currentCrops.map((parcel: any) => ({
+            id: parcel._id,
+            name: parcel.cropName,
+            stage: parcel.cropStatus ? parcel.cropStatus.toUpperCase() : "SOWN",
+            health: "Healthy", // Can be dynamic if health status is stored
+          }));
+          // Set initial selected crop if not already set
+          if (!selectedCrop) {
+            setSelectedCrop(formattedCrops[0].id);
+          }
+        }
+
+        // Map backend recentInspections to format expected by RecentScansList
+        const formattedScans = recentInspections.map((scan: any) => ({
+          id: scan.id,
+          crop: scan.cropName || "Crop",
+          diagnosis: scan.diagnosisName || "Diagnosis Complete",
+          confidence: `${scan.confidence || 0}%`,
+          date: new Date(scan.date).toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "short",
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          severity: scan.isHealthy ? ("healthy" as const) : ("high" as const),
+        }));
+
+        setRecentScans(formattedScans);
+      }
+    } catch (error: any) {
+      console.error(
+        "Failed to load dashboard data:",
+        error.response?.data || error.message,
+      );
+    }
+  };
+
   const loadWeatherData = async () => {
-    setRefreshing(true);
     const data = await fetchLocalWeatherAndLocation();
     setWeatherData(data);
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([loadDashboardData(), loadWeatherData()]);
     setRefreshing(false);
   };
 
   useEffect(() => {
-    loadWeatherData();
+    const init = async () => {
+      setLoadingDashboard(true);
+      await Promise.all([loadDashboardData(), loadWeatherData()]);
+      setLoadingDashboard(false);
+    };
+    init();
   }, []);
+
+  // Format backend crops for CropCarousel component
+  const carouselCrops =
+    farmerData?.currentCrops?.map((parcel: any) => ({
+      id: parcel._id,
+      name: parcel.cropName,
+      stage: `${parcel.season} · ${parcel.plotArea} ${farmerData.landUnit || "acre"}`,
+      health: "Healthy",
+    })) || [];
 
   return (
     <View style={{ paddingTop: insets.top }} className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" />
 
       {/* Top Header Bar */}
-      <View className="bg-white px-5 pt-3 pb-4 border-b border-emerald-100 flex-row items-center justify-between">
+      <View className="px-5 pt-3 pb-4 border-b border-emerald-100 flex-row items-center justify-between">
         <View className="flex-row items-center gap-3">
           <View className="w-10 h-10 bg-emerald-600 rounded-xl items-center justify-center">
             <Sprout size={22} color="#ffffff" />
@@ -95,7 +132,9 @@ export default function HomeScreen() {
               agritech
             </Text>
             <Text className="text-xs text-emerald-700 font-medium">
-              Field Advisory & Diagnostics
+              {farmerData?.name
+                ? `Welcome, ${farmerData.name}`
+                : "Field Advisory & Diagnostics"}
             </Text>
           </View>
         </View>
@@ -117,7 +156,7 @@ export default function HomeScreen() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={loadWeatherData}
+            onRefresh={onRefresh}
             tintColor="#059669"
           />
         }
@@ -163,16 +202,28 @@ export default function HomeScreen() {
 
         {/* 3. Active Crops Carousel Component */}
         <CropCarousel
-          crops={MOCK_CROPS}
+          crops={carouselCrops}
           selectedCropId={selectedCrop}
           onSelectCrop={(id: string) => setSelectedCrop(id)}
+          onAddCropPress={() => {
+            // Optional: Handle adding a new crop parcel
+          }}
         />
 
         {/* 4. Quick Advisory Tools Grid Component */}
         <AdvisoryGrid />
 
         {/* 5. Recent Diagnostic History Component */}
-        <RecentScansList scans={MOCK_SCANS} />
+        <RecentScansList
+          scans={recentScans}
+          onViewAllPress={() => {}}
+          onScanPress={(id: string) => {
+            router.push({
+              pathname: "/inspection-result" as any,
+              params: { inspectionId: id },
+            });
+          }}
+        />
       </ScrollView>
     </View>
   );
