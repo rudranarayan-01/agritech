@@ -3,13 +3,12 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import AnimatedSplashScreen from "../../components/AnimatedSplashScreen"; // Adjust path based on your root folder if needed
+import AnimatedSplashScreen from "../../components/AnimatedSplashScreen";
 import { AuthProvider, useAuth } from "../../context/AuthContext";
 import "../global.css";
 
 SplashScreen.preventAutoHideAsync();
 
-// Inner component that handles route redirection based on auth state
 function RootNavigator() {
   const { token, isLoading } = useAuth();
   const segments = useSegments();
@@ -21,10 +20,8 @@ function RootNavigator() {
     const inAuthGroup = segments[0] === "login";
 
     if (!token && !inAuthGroup) {
-      // Redirect to login if not authenticated and not already on login screen
-      router.replace("/login");
+      router.replace("/login" as any);
     } else if (token && inAuthGroup) {
-      // Redirect to main tabs if already logged in and trying to access login
       router.replace("/(tabs)" as any);
     }
   }, [token, isLoading, segments]);
@@ -42,7 +39,8 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <View className="flex-1 w-full h-full bg-white">
+        {/* REMOVED w-full h-full on the outer View container which can break NativeWind CSS interop measurement context */}
+        <View className="flex-1 bg-white">
           <RootNavigator />
           {!isAppReady && (
             <AnimatedSplashScreen
