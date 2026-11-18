@@ -191,7 +191,7 @@ export default function InspectionResultScreen() {
 
             <View>
               <Text className="text-xl font-extrabold text-stone-900">
-                {diagnosisName}
+                {diagnosisName.toUpperCase()}
               </Text>
               {scientificName ? (
                 <Text className="text-xs italic text-stone-500 mt-0.5">
@@ -201,9 +201,9 @@ export default function InspectionResultScreen() {
             </View>
 
             {displayLocation ? (
-              <View className="flex-row items-center gap-2 bg-stone-50 px-3 py-2 rounded-xl border border-stone-200/70">
+              <View className="flex-row items-center gap-2 pb-1 rounded-xl">
                 <MapPin size={13} color="#059669" />
-                <Text className="text-xs text-stone-600 font-medium">
+                <Text className="text-xs text-blue-600 font-medium">
                   {displayLocation} {displayTemp ? `· ${displayTemp}°C` : ""} ·{" "}
                   {cropName}
                 </Text>
@@ -239,7 +239,7 @@ export default function InspectionResultScreen() {
                   organicSteps.map((step: string, idx: number) => (
                     <View
                       key={`bio-${idx}`}
-                      className="flex-row items-start gap-2.5 bg-stone-50 p-3 rounded-2xl border border-stone-100"
+                      className="flex-row items-start gap-2.5 p-3 rounded-2xl"
                     >
                       <CheckCircle2
                         size={16}
@@ -276,7 +276,7 @@ export default function InspectionResultScreen() {
                   chemicalSteps.map((step: string, idx: number) => (
                     <View
                       key={`chem-${idx}`}
-                      className="flex-row items-start gap-2.5 bg-stone-50 p-3 rounded-2xl border border-stone-100"
+                      className="flex-row items-start gap-2.5 p-3 rounded-2xl"
                     >
                       <CheckCircle2
                         size={16}
@@ -313,7 +313,7 @@ export default function InspectionResultScreen() {
                   preventionSteps.map((step: string, idx: number) => (
                     <View
                       key={`prev-${idx}`}
-                      className="flex-row items-start gap-2.5 bg-stone-50 p-3 rounded-2xl border border-stone-100"
+                      className="flex-row items-start gap-2.5 p-3 rounded-2xl "
                     >
                       <CheckCircle2
                         size={16}

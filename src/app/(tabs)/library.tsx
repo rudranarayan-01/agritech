@@ -206,7 +206,7 @@ export default function InspectionHistoryScreen() {
                   </View>
 
                   {/* Middle: Diagnosis Name & Description Snippet */}
-                  <View className="bg-stone-50 p-3 rounded-2xl border border-stone-100 gap-1">
+                  <View className="bg-stone-50 p-3 rounded-2xl gap-1">
                     <Text className="text-stone-900 font-bold text-xs uppercase tracking-wider">
                       Diagnosis: {item.diagnosis?.name || "Unknown"}
                     </Text>
