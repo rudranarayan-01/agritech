@@ -139,9 +139,10 @@ export default function HomeScreen() {
             deficiencies, and fungal diseases instantly.
           </Text>
 
+          {/* FIXED ROUTE: Points directly to your crop inspection camera screen */}
           <TouchableOpacity
             activeOpacity={0.85}
-            onPress={() => router.push("/explore" as any)}
+            onPress={() => router.push("/crop-inspect" as any)}
             className="mt-5 bg-white py-3.5 px-5 rounded-2xl flex-row items-center justify-center gap-2.5 shadow-sm"
           >
             <Camera size={20} color="#047857" />
