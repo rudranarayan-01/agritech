@@ -1,7 +1,8 @@
 import { router } from "expo-router";
-import { Bell, Camera, ShieldCheck, Sprout } from "lucide-react-native";
+import { Bell, Camera, ShieldCheck } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import {
+  Image,
   RefreshControl,
   ScrollView,
   StatusBar,
@@ -124,8 +125,13 @@ export default function HomeScreen() {
       {/* Top Header Bar */}
       <View className="px-5 pt-3 pb-4 border-b border-emerald-100 flex-row items-center justify-between">
         <View className="flex-row items-center gap-3">
-          <View className="w-10 h-10 bg-emerald-600 rounded-xl items-center justify-center">
-            <Sprout size={22} color="#ffffff" />
+          {/* Custom Icon Image Replacement */}
+          <View className="w-11 h-11 rounded-xl bg-white overflow-hidden shadow-2xs items-center justify-center p-1">
+            <Image
+              source={require("../../../assets/icon.png")}
+              className="w-full h-full rounded-lg"
+              resizeMode="contain"
+            />
           </View>
           <View>
             <Text className="text-lg font-extrabold text-slate-900 tracking-tight uppercase">

@@ -98,13 +98,10 @@ export default function RecentScansList({
                 <View className="flex-1">
                   <View className="flex-row items-center gap-2">
                     <Text
-                      className="text-slate-900 font-bold text-sm shrink"
+                      className="text-slate-900 font-bold text-sm shrink capitalize"
                       numberOfLines={1}
                     >
-                      {scan.diagnosis
-                        ? scan.diagnosis.charAt(0).toUpperCase() +
-                          scan.diagnosis.slice(1)
-                        : ""}
+                      {scan.diagnosis}
                     </Text>
                   </View>
                   <View className="flex-row items-center gap-1.5 mt-0.5">
