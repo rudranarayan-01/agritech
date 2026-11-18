@@ -21,7 +21,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 
 export default function LoginScreen() {
-  const [mobile, setMobile] = useState("");
+  const [mobile, setMobile] = useState("9876543210");
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
 

@@ -51,13 +51,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const login = async (mobile: string) => {
     try {
       const response = await apiClient.post("/farmers/login", { mobile });
-      const { token, data } = response.data;
 
-      // Save securely
-      await SecureStore.setItemAsync("farmer_token", token);
+      // Expecting { accessToken, refreshToken, data } from our updated backend controller
+      const { accessToken, refreshToken, data } = response.data;
+
+      // Save access token, refresh token, and farmer metadata securely
+      await SecureStore.setItemAsync("farmer_token", accessToken);
+      if (refreshToken) {
+        await SecureStore.setItemAsync("farmer_refresh_token", refreshToken);
+      }
       await SecureStore.setItemAsync("farmer_data", JSON.stringify(data));
 
-      setToken(token);
+      setToken(accessToken);
       setFarmer(data);
     } catch (error: any) {
       console.log(error);
@@ -70,8 +75,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const logout = async () => {
     try {
+      // Optional: Call backend logout to wipe refreshTokenHash from MongoDB
+      try {
+        await apiClient.post("/farmers/logout");
+      } catch (err) {
+        // Ignore network errors on logout, proceed to clear local store
+      }
+
+      // Clear all secure storage entries
       await SecureStore.deleteItemAsync("farmer_token");
+      await SecureStore.deleteItemAsync("farmer_refresh_token");
       await SecureStore.deleteItemAsync("farmer_data");
+
       setToken(null);
       setFarmer(null);
     } catch (error) {
