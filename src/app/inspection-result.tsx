@@ -10,7 +10,9 @@ import {
   ShieldCheck,
   Sprout,
 } from "lucide-react-native";
+import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   ScrollView,
   StatusBar,
@@ -19,21 +21,69 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { apiClient } from "../../services/api";
 
 export default function InspectionResultScreen() {
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
 
-  let result = null;
-  try {
-    result = params.resultData ? JSON.parse(params.resultData as string) : null;
-  } catch (e) {
-    console.error("Failed to parse inspection result params", e);
-  }
+  const [result, setResult] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
+  const inspectionId = params.inspectionId as string;
+  const resultDataParam = params.resultData as string;
   const imageUri = params.imageUri as string;
-  const location = params.location as string;
-  const temp = params.temp as string;
+  const locationParam = params.location as string;
+  const tempParam = params.temp as string;
+
+  useEffect(() => {
+    const loadReport = async () => {
+      try {
+        setLoading(true);
+
+        // Path A: Navigated directly from live camera scan
+        if (resultDataParam) {
+          const parsed = JSON.parse(resultDataParam);
+          setResult(parsed);
+          setLoading(false);
+          return;
+        }
+
+        // Path B: Navigated from history list using inspection ID
+        if (inspectionId) {
+          const response = await apiClient.get(
+            `/analysis/quick/${inspectionId}`,
+          );
+          if (response.data?.success) {
+            setResult(response.data.data);
+          }
+        }
+      } catch (error: any) {
+        console.error(
+          "Failed to load inspection details:",
+          error.response?.data || error.message,
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadReport();
+  }, [inspectionId, resultDataParam]); // Depend only on primitive strings, NOT the params object
+
+  if (loading) {
+    return (
+      <View
+        style={{ paddingTop: insets.top }}
+        className="flex-1 items-center justify-center bg-white"
+      >
+        <ActivityIndicator size="large" color="#059669" />
+        <Text className="text-stone-500 text-xs mt-3 font-medium">
+          Loading diagnosis report...
+        </Text>
+      </View>
+    );
+  }
 
   if (!result) {
     return (
@@ -54,10 +104,31 @@ export default function InspectionResultScreen() {
     );
   }
 
+  // Handle both snake_case (live API) and camelCase (MongoDB document) field mappings safely
+  const isHealthy =
+    result.diagnosis?.isHealthy ?? result.diagnosis?.is_healthy ?? false;
+  const diagnosisName = result.diagnosis?.name || "Unknown Condition";
+  const scientificName =
+    result.diagnosis?.scientificName || result.diagnosis?.scientific_name;
+  const confidenceScore = result.diagnosis?.confidence || 0;
+  const descriptionText =
+    result.diagnosis?.description || "No description available.";
+  const cropName = result.crop?.name || "Crop";
+
   const treatments = result.treatments || {};
   const organicSteps: string[] = treatments.biological || [];
   const chemicalSteps: string[] = treatments.chemical || [];
   const preventionSteps: string[] = treatments.prevention || [];
+
+  const displayLocation =
+    locationParam ||
+    (result.location
+      ? `${result.location.village || "Farm"}, ${result.location.district || "District"}`
+      : null);
+
+  const displayTemp =
+    tempParam || result.weatherAtInspection?.temperature || null;
+  const displayImage = imageUri || result.imageUrl || null;
 
   return (
     <View style={{ paddingTop: insets.top }} className="flex-1 bg-stone-50">
@@ -84,9 +155,9 @@ export default function InspectionResultScreen() {
       >
         {/* Captured Image & Diagnosis Card */}
         <View className="bg-white rounded-3xl overflow-hidden border border-stone-200 shadow-sm">
-          {imageUri ? (
+          {displayImage ? (
             <Image
-              source={{ uri: imageUri }}
+              source={{ uri: displayImage }}
               className="w-full h-56"
               resizeMode="cover"
             />
@@ -96,62 +167,57 @@ export default function InspectionResultScreen() {
             <View className="flex-row items-center justify-between">
               <View
                 className={`px-3 py-1 rounded-full flex-row items-center gap-1.5 ${
-                  result.diagnosis?.is_healthy
-                    ? "bg-emerald-100"
-                    : "bg-amber-100"
+                  isHealthy ? "bg-emerald-100" : "bg-amber-100"
                 }`}
               >
-                {result.diagnosis?.is_healthy ? (
+                {isHealthy ? (
                   <ShieldCheck size={14} color="#047857" />
                 ) : (
                   <AlertTriangle size={14} color="#b45309" />
                 )}
                 <Text
                   className={`text-xs font-extrabold uppercase ${
-                    result.diagnosis?.is_healthy
-                      ? "text-emerald-800"
-                      : "text-amber-900"
+                    isHealthy ? "text-emerald-800" : "text-amber-900"
                   }`}
                 >
-                  {result.diagnosis?.is_healthy
-                    ? "Healthy Specimen"
-                    : "Disease Detected"}
+                  {isHealthy ? "Healthy Specimen" : "Disease Detected"}
                 </Text>
               </View>
 
               <Text className="text-xs font-bold text-stone-500">
-                {result.diagnosis?.confidence || 0}% Match
+                {confidenceScore}% Match
               </Text>
             </View>
 
             <View>
               <Text className="text-xl font-extrabold text-stone-900">
-                {result.diagnosis?.name || "Unknown Condition"}
+                {diagnosisName}
               </Text>
-              {result.diagnosis?.scientific_name ? (
+              {scientificName ? (
                 <Text className="text-xs italic text-stone-500 mt-0.5">
-                  {result.diagnosis.scientific_name}
+                  {scientificName}
                 </Text>
               ) : null}
             </View>
 
-            {location ? (
+            {displayLocation ? (
               <View className="flex-row items-center gap-2 bg-stone-50 px-3 py-2 rounded-xl border border-stone-200/70">
                 <MapPin size={13} color="#059669" />
                 <Text className="text-xs text-stone-600 font-medium">
-                  {location} · {temp}°C · {result.crop?.name || "Crop"}
+                  {displayLocation} {displayTemp ? `· ${displayTemp}°C` : ""} ·{" "}
+                  {cropName}
                 </Text>
               </View>
             ) : null}
 
             <Text className="text-stone-600 text-xs leading-relaxed">
-              {result.diagnosis?.description || "No description available."}
+              {descriptionText}
             </Text>
           </View>
         </View>
 
         {/* Stacked Treatment Sections (One below another, NO tabs) */}
-        {!result.diagnosis?.is_healthy && (
+        {!isHealthy && (
           <View className="gap-4">
             <Text className="text-base font-extrabold text-stone-900 px-1">
               Recommended Treatments & Management

@@ -1,4 +1,4 @@
-import { logger } from "@rudranarayan01/logaccent";
+import { accent, logger } from "@rudranarayan01/logaccent";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 
@@ -24,12 +24,14 @@ apiClient.interceptors.request.use(
     }
 
     // 🔍 LOG OUTGOING REQUEST
-    logger.info("[API REQUEST]", {
-      url: `${config.baseURL}${config.url}`,
-      method: config.method?.toUpperCase(),
-      headers: config.headers,
-      data: config.data,
-    });
+    logger.info(
+      accent.green("[API REQUEST]", {
+        url: `${config.baseURL}${config.url}`,
+        method: config.method?.toUpperCase(),
+        headers: config.headers,
+        data: config.data,
+      }),
+    );
 
     return config;
   },
