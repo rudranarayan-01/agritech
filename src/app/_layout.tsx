@@ -39,7 +39,6 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        {/* REMOVED w-full h-full on the outer View container which can break NativeWind CSS interop measurement context */}
         <View className="flex-1 bg-white">
           <RootNavigator />
           {!isAppReady && (
