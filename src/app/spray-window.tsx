@@ -1,31 +1,31 @@
 import * as Location from "expo-location";
 import { router } from "expo-router";
 import {
-    AlertTriangle,
-    ArrowLeft,
-    CheckCircle2,
-    Clock,
-    CloudDrizzle,
-    CloudRain,
-    Droplets,
-    MapPin,
-    RefreshCw,
-    Sprout,
-    Sun,
-    Wind,
-    XCircle,
+  AlertTriangle,
+  ArrowLeft,
+  CheckCircle2,
+  Clock,
+  CloudDrizzle,
+  CloudRain,
+  Droplets,
+  MapPin,
+  RefreshCw,
+  Sprout,
+  Sun,
+  Wind,
+  XCircle,
 } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-    ActivityIndicator,
-    Image,
-    ImageSourcePropType,
-    RefreshControl,
-    ScrollView,
-    StatusBar,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Image,
+  ImageSourcePropType,
+  RefreshControl,
+  ScrollView,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { apiClient } from "../../services/api";
