@@ -66,6 +66,7 @@ export default function AdvisoryGrid({
 
         {/* Soil Health Tile */}
         <TouchableOpacity
+          onPress={() => router.push("/soil-advisory" as any)}
           activeOpacity={0.8}
           className="w-[48%] bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs gap-2.5"
         >
@@ -82,8 +83,24 @@ export default function AdvisoryGrid({
           </View>
         </TouchableOpacity>
 
-        {/* Crop Calendar Tile */}
+        {/* Crop Calendar / Crop Stage Tile */}
         <TouchableOpacity
+          onPress={() =>
+            router.push({
+              pathname: "/crop-stage" as any,
+              params: {
+                ...(selectedCrop?.cropName
+                  ? { cropName: selectedCrop.cropName }
+                  : {}),
+                ...(selectedCrop?.plotArea
+                  ? { plotArea: String(selectedCrop.plotArea) }
+                  : {}),
+                ...(selectedCrop?.landUnit
+                  ? { landUnit: selectedCrop.landUnit }
+                  : {}),
+              },
+            })
+          }
           activeOpacity={0.8}
           className="w-[48%] bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs gap-2.5"
         >
