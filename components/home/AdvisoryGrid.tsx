@@ -115,7 +115,6 @@ export default function AdvisoryGrid({
           </View>
         </TouchableOpacity>
 
-        {/* Weather Alerts Tile */}
         {/* Weather Alerts / Spray Window Tile */}
         <TouchableOpacity
           onPress={() => router.push("/spray-window" as any)}
